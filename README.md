@@ -1,159 +1,138 @@
-# mlp-timeseries-interpolation-extrapolation
-
-
 <div style="display: flex; justify-content: space-around; align-items: center;">
   <img src="assets/images/mlp_ts_in_ex.png" alt="Image 1" style="width: 100%; margin: 10px;">
 </div>
 
 ## 📜 mlp-timeseries-interpolation-extrapolation
-#### 📌 Summary 
-Implemented MLP model A bivariate timeseries dataset cleaned, interpolated &amp; extrapolated using MLP, Fourier-Features &amp; PyTorch.
+#### 📌 Summary  
+Implementation of a Multi-Layer Perceptron (MLP) using PyTorch for modeling, interpolation, and extrapolation of bivariate time series data `(x(t), y(t))` given scalar time input `t`.
 
-#### 🧠 Overview
-This project implements a variation of the Generative Adversarial Network (GAN) called Deep Convolutional GAN (DCGAN) to generate synthetic human faces using Python and TensorFlow. The DCGAN architecture consists of two competing neural networks:
-- **(1) The Generator     :** Creates fake face images from random noise.
-- **(2) The Discriminator :** Tries to distinguish between real and fake images.
+#### 🧠 Overview  
+This project leverages a deep learning-based MLP (Multi-Layer Perceptron) model to approximate noisy 2D time series data using Python and PyTorch. The model is trained to learn a mapping from scalar input time `t` to two-dimensional spatial coordinates `x` and `y`.  
 
-Both networks improve through adversarial training: the generator gets better at mimicking real faces, and the discriminator becomes more skilled at detecting fakes. This dynamic pushes the generator to produce increasingly realistic outputs. To maintain balance during training, the discriminator is deliberately kept simpler to avoid overpowering the generator.
+This effectively enables:
+- **Interpolation** — Estimating missing or unobserved values within the data range where 0<t<20
+- **Extrapolation** — Predicting values beyond the existing time boundaries where 0<t<100
 
-The model is trained on the [Flickr Faces Dataset Resized](https://www.kaggle.com/datasets/matheuseduardo/flickr-faces-dataset-resized/data) from kaggle, which includes 52,000 face images in three resolutions: 64x64, 128x128, and 256x256. Due to GPU memory limitations, 64x64 resolution is recommended for training on the full dataset. However, this project experimented with 256x256 resolution on a smaller subset of the dataset to generate higher-quality outputs.  **All development and experimentation were carried out on Kaggle**, leveraging its GPU resources. This project also shows how input resolution impacts the quality of generated faces—higher-resolution training images lead to sharper, more realistic outputs, while lower resolutions introduce some blur and noise.
+The original dataset (data.csv)[https://gist.github.com/tmramalho/51733432c88e2b834dbd70353849f887] is a noisy CSV file containing columns `t`, `x`, and `y`. Data preprocessing includes:
+- Cleaning invalid characters
+- Ensuring numerical consistency
+- Plotting for visual inspection
 
-**DCGAN Model Architecture Summary**
-- Two Neural Networks:
-    1. Generator ("Artist") – creates realistic-looking images.
-    2. Discriminator ("Critic") – distinguishes real images from fakes.
-During training, both networks improve in opposition until the discriminator can no longer tell real from fake images.
+The MLP model consists of several fully connected layers activated with ReLU, trained to minimize mean squared error between predicted and actual positions. The project was implemented and tested entirely in a Google Colab notebook environment.
 
-**Generator Architecture**
-- Structure:
-    1. Fully connected (Dense) layer
-    2. Transposed Convolution layers (upsampling)
-    3. Final Output Layer
+**Model Architecture Summary - Interpolation**
+- Input: Scalar value `t`
+- Output: 2D vector `(x, y)`
+- Layers:
+  1. Dense Layer → 64 units
+  2. Dense Layer → 128 units
+  3. Dense Layer → 256 units
+  4. Output Layer → 2 units `(x, y)`
+- Activation: ReLU (in all hidden layers)
 
-- Workflow:
-    1. Starts with a latent vector (8x8x512).
-    2. Upsamples through transposed convolutions:
-         - 8×8 → 16×16 (256 channels) --> 16×16 → 32×32 (128) -->
-         - 32×32 → 64×64 (64) --> 64×64 → 128×128 (32) --> 128×128 → 256×256 (16)
-    3. Output layer: tanh activation to produce final 64×64×3 RGB image.
-
-- Activations: ReLU for all layers (except final layer which uses tanh).
-
-**Discriminator Architecture**
-- Structure:
-    1. Convolutional layers (reverse of generator)
-    2. Flatten and Dropout
-    3. Final Classification Layer
-    4. 
-- Workflow (mirrors Generator in reverse):
-    1. 256×256 → 128×128 (16 channels) --> 128×128 → 64×64 (32) --> 64×64 → 32×32 (64)-->
-    2. 32×32 → 16×16 (128) --> 16×16 → 8×8 (256)
-
-- Activations: LeakyReLU (after BatchNorm), except output layer.
-
-**Loss Functions**
-- Binary Crossentropy used for both models.
-
-- Discriminator Loss:
-    - Measures accuracy of distinguishing real vs. fake (real → 1, fake → 0).
-- Generator Loss:
-    - Measures success at fooling the discriminator (fake → 1).
+**Loss Function**
+- Mean Squared Error (MSE)
 
 **Optimization**
-- Both models use Adam Optimizer independently for training.
+- Adam optimizer
 
-The project successfully demonstrates the capability of DCGANs to generate human faces, although the realism of the output images largely depends on the scale of training and the size of the input dataset.
+**Model Architecture Summary - Extrapolation**
+- Feature Extraction : Fourier Features
+- Input: Scalar value `t`
+- Output: 2D vector `(x, y)`
+- Layers:
+  1. Dense Layer → 128 units
+  2. Dense Layer → 256 units
+  3. Dense Layer → 61 units
+  4. Output Layer → 2 units `(x, y)`
+- Activation: ReLU (in all hidden layers)
 
+**Loss Function**
+- Mean Squared Error (MSE)
 
-#### 🎯 Use Cases 
-- Synthetic Face Generation
-- Data Augmentation
-- Anonymization
-- Art & Creative Media
-- AI Model Benchmarking
-- Educational Purpose
-- Testing Face Recognition Systems
+**Optimization**
+- Adam optimizer
+
+#### 🎯 Use Cases
+- Time series trajectory reconstruction
+- Missing data interpolation
+- Forecasting 2D trajectories (e.g., object motion)
+- Learning noisy curve patterns
+- Educational demonstration of function approximation with deep learning
 
 #### 🟢 Project Status
 - Current Version: V1.0
 
 #### 📂 Repository Structure
 ```
-paper-hbert-sarcasm-detection/
+mlp-timeseries-interpolation-extrapolation/
 ├── README.md
 ├── LICENSE
 ├── .gitignore                  
 ├── assets/                      
 │   └── images/
 └── notebooks/               
-    └── sarcasm-analysis.ipynb
-
+    └── mlp_interpolation_extrapolation.ipynb
 ```
+
 ### ✨ Features
-- ✅ `DCGAN` model class
-- ✅ Preprocessed Data
-- ✅ Evaluation: Visualization of generated synthetif human face output 
+- ✅ Cleaned time series dataset
+- ✅ MLP model for 2D prediction
+- ✅ Visualization of real vs predicted curves
+- ✅ Interpolation & extrapolation demonstration
 
-🛠️ In progress:-
-- On-going training with 256x256 images with more training epochs
+🛠️ In progress:
+- Performance comparison with other regressors
 
-<!--
-### 🎥 Demo
- <a href="https://www.youtube.com/shorts/wexIv6X45eE?feature=share" target="_blank">
-  <img src="assets/images/2_2.JPG" alt="YouTube Video" width="390" height="270">
-</a> 
--->
+---
 
 ### 🚀 Getting Started
-#### 📚 Knowledge & Skills Required 
+
+#### 📚 Knowledge & Skills Required
 - Python programming
-- ML/DL fundamentals, Neural Network Arhitecutres (CNN, GAN)
-- Optimizers, Loss Functions
-  
+- Basic ML/DL concepts
+- Understanding of time series and regression
+
 #### 💻 Software Requirements
-- IDE (VS Code) or jupyter notebook or google colab, kaggle
-- **Best run on Kaggle using GPU T4x2**
-  
+- Jupyter Notebook or Colab
+- Python ≥ 3.8
+
 #### 🛡️ Tech Stack
-- Language: python
-- NLP/ML: sklearn, pandas, numpy
-- Deep Learning: tensorflow
-- Visualization: matplotlib
+- Language: Python
+- Libraries: pandas, numpy, matplotlib, scikit-learn
+- Deep Learning: PyTorch
 
 #### 🔍 Modules Breakdown
-<b> 📥 (1) Data-Preprocessing :</b> wh 
-- Load dataset from kaggle
-- Ensure RGB (convert from grayscale if needed)
-- Resize images
-- Convert to float dtype
-- Normalize to (-1, 1) for GAN training
-- Append processed images to dataset
 
-<b> 🤖 (2) DCGAN :</b> 
-**Two Neural Networks:**
-    1. Generator ("Artist") – creates realistic-looking images.
-         - Activations: ReLU for all layers (except final layer which uses tanh).
-    3. Discriminator ("Critic") – distinguishes real images from fakes.
-         - Activations: LeakyReLU (after BatchNorm), except output layer.
+<b>📥 (1) Data Preprocessing:</b>
+- Load and clean dataset (`data.csv`)
+- Remove rows with invalid or missing entries
+- Convert all values to numerical type
+- Plot `x(t)` and `y(t)` for exploration
 
-<b> 📉 (3) Loss Functions :</b> 
-- Binary Crossentropy used for both models.
-- Discriminator Loss: Measures accuracy of distinguishing real vs. fake (real → 1, fake → 0).
-- Generator Loss: Measures success at fooling the discriminator (fake → 1).
+<b>🤖 (2) MLP Model - Interpoaltion:</b>
+- Multi-layer fully connected neural network
+- Input: scalar `t`, Output: vector `(x, y)`
+- Layers: 1 → 64 → 128 → 256 → 2
+- ReLU activations
+- Output: 2D prediction of time-series position
 
-<b> 📶 (4) Optimization :</b> 
-- Both models use Adam Optimizer independently for training.
+<b>📉 (3) Loss & Optimization:</b>
+- Loss Function: Mean Squared Error
+- Optimizer: Adam
 
-##### 📊 Evaluation
-- Seeing the generated fake images
-- Future work : auraccy, precision , recall , f1
+<b>📊 Evaluation:</b>
+- Plotting predicted vs true curves
+- Visualization for both interpolation & extrapolation
+
+---
 
 #### ⚙️ Installation
-```
-git clone https://github.com/pointer2Alvee/dcgan-human-face-generation.git
-cd dcgan-face-gen
+```bash
+git clone https://github.com/pointer2Alvee/mlp-timeseries-interpolation-extrapolation.git
+cd mlp-timeseries-interpolation-extrapolation
 
-# Recommended: Use a virtual environment
+# Recommended: Use virtual environment
 pip install -r requirements.txt
 ```
 
@@ -161,38 +140,58 @@ pip install -r requirements.txt
 ```
 pandas
 numpy
-tensorflow
 matplotlib
+scikit-learn
+torch
 ```
 
 ##### 💻 Running the App Locally
-1. Open Repo in VS code / Kaggle (recommended)
-2. Run Command
-3. See accuracy
+1. Open the Jupyter notebook `mlp-timeseries.ipynb`
+2. Run all cells sequentially
+3. Visualize plots of predicted vs actual time series
 
-#### 📖 Usage
-- Open VS Code / kaggle
+---
+
+### 📖 Usage
+- Open the project in **Google Colab** or **Jupyter Notebook**
+- Adjust model layers or learning rate as needed
+- Upload your own time series CSV (with `t`, `x`, `y` columns) for testing
+
+---
 
 ### 🧪 Sample Topics Implemented
-- ✅ DCGAN
-- ✅ CNN, CONVOLUTION, POOLING
-- ✅ GAN, OPTIMIZERS, LOSS FUNCTIONS
+- ✅ Deep MLP for regression
+- ✅ Time series interpolation/extrapolation
+- ✅ PyTorch model training
+- ✅ Data visualization for time series
+
+---
 
 ### 🧭 Roadmap
-- [x] Implementation of DCGAN
-- [x] Generation of Fake Human Faces
-- [ ] Trained with 300+ epochs 
+- [x] Basic MLP model for 2D regression
+- [x] Time series interpolation & extrapolation
+- [x] Add Fourier-based feature transformation
+- [ ] Compare with traditional regressors (SVR, GPR)
+
+---
 
 ### 🤝 Contributing
 Contributions are welcomed!
-1. Fork the repo. 
-2. Create a branch: ```git checkout -b feature/YourFeature```
-3. Commit changes: ```git commit -m 'Add some feature'```
-4. Push to branch: ```git push origin feature/YourFeature```
-5. Open a Pull Request.
+1. Fork the repo  
+2. Create a branch: `git checkout -b feature/YourFeature`  
+3. Commit changes: `git commit -m 'Add some feature'`  
+4. Push to branch: `git push origin feature/YourFeature`  
+5. Open a Pull Request
 
-### 📜License
-Distributed under the MIT License. See LICENSE.txt for more information.
+---
 
-### 🙏Acknowledgements
-- Special thanks to the open-source community / youtube for tools and resources.
+### 📜 License
+Distributed under the MIT License. See `LICENSE` for more information.
+
+---
+
+### 🙏 Acknowledgements
+- PyTorch Team
+- Kaggle Community
+- Open-source contributors and visualization libraries
+
